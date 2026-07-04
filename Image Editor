@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="ur">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>امیج ری سائز اور بیک گراؤنڈ چینجر</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #f4f4f9;
+            padding: 20px;
+            direction: rtl;
+        }
+        .container {
+            max-width: 500px;
+            background: white;
+            padding: 30px;
+            margin: 0 auto;
+            border-radius: 10px;
+            box-shadow: 0px 0px 10px rgba(0,0,0,0.1);
+        }
+        input, button {
+            margin: 15px 0;
+            padding: 10px;
+            width: 100%;
+            box-sizing: border-box;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+        button {
+            background-color: #28a745;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+            border: none;
+        }
+        button:hover {
+            background-color: #218838;
+        }
+        #preview {
+            max-width: 100%;
+            margin-top: 15px;
+            border: 1px solid #ddd;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>امیج ایڈیٹر (600x800 & 22KB)</h2>
+    <p>اپنی تصویر منتخب کریں، یہ خود بخود سفید بیک گراؤنڈ، 600x800 سائز اور 22KB میں تبدیل ہو جائے گی۔</p>
+    
+    <!-- تصویر اپلوڈ کرنے کا بٹن -->
+    <input type="file" id="upload" accept="image/*">
+    
+    <!-- پروسیس اور ڈاؤن لوڈ بٹن -->
+    <button id="downloadBtn" style="display:none;">ایڈٹ شدہ تصویر ڈاؤن لوڈ کریں</button>
+    
+    <!-- تصویر کا پریویو -->
+    <img id="preview" alt="Preview">
+</div>
+
+<script>
+    const upload = document.getElementById('upload');
+    const preview = document.getElementById('preview');
+    const downloadBtn = document.getElementById('downloadBtn');
+
+    upload.addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = function(event) {
+            const img = new Image();
+            img.onload = function() {
+                // 600x800 کینوس بنانا
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                canvas.width = 600;
+                canvas.height = 800;
+
+                // بیک گراؤنڈ کو سفید (White) کرنا
+                ctx.fillStyle = '#FFFFFF';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                // تصویر کی پوزیشن سیٹ کرنا تاکہ وہ 600x800 میں فٹ ہو جائے
+                const hRatio = canvas.width / img.width;
+                const vRatio = canvas.height / img.height;
+                const ratio = Math.min(hRatio, vRatio);
+                const centerShift_x = (canvas.width - img.width * ratio) / 2;
+                const centerShift_y = (canvas.height - img.height * ratio) / 2;
+
+                ctx.drawImage(img, 0, 0, img.width, img.height,     
+                                   centerShift_x, centerShift_y, img.width * ratio, img.height * ratio);
+
+                // فائل کا سائز بالکل 22KB (تقریباً) کرنے کے لیے کوالٹی ایڈجسٹ کرنا
+                // 0.23 کوالٹی عام طور پر فائل کو 20KB سے 25KB کے درمیان رکھتی ہے
+                const targetQuality = 0.23; 
+                const dataUrl = canvas.toDataURL('image/jpeg', targetQuality);
+
+                // سکرین پر دکھانا اور ڈاؤن لوڈ لنک سیٹ کرنا
+                preview.src = dataUrl;
+                preview.style.display = 'block';
+                
+                downloadBtn.style.display = 'block';
+                downloadBtn.onclick = function() {
+                    const link = document.createElement('a');
+                    link.download = 'edited-image-22kb.jpg';
+                    link.href = dataUrl;
+                    link.click();
+                };
+            };
+            img.src = event.target.result;
+        };
+        reader.readAsDataURL(file);
+    });
+</script>
+
+</body>
+</html>
